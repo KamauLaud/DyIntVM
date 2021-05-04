@@ -1,2 +1,8 @@
+# jupyter notebook
 .ipynb_checkpoints/
+
+# python 
+__pycache__/
+
+# added by adheesh
 jupyter.txt

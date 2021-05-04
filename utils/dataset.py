@@ -8,6 +8,151 @@ import numpy as np
 import warnings
 import cv2
 
+warnings.filterwarnings("ignore")
+
+class PredictImageSet(Dataset):
+    """
+    Encapsulate Caltech256 torch.utils.data.Dataset
+
+    Parameters
+    ----------
+    root_dir : str
+        Path to the dataset directory.
+
+    transform : Callable,
+        A transform function that takes the original image and
+        return a transformed version.
+
+    Attributes
+    ----------
+    data : list
+        list of images files names
+    labels : list
+        list of integers (labels)
+    """
+
+    def __init__(self, img,
+                 transform: Optional[Callable] = None):
+
+        self.transform = transform
+        self.data = []
+        img = img[:, :, ::-1]
+        img = self.img_normalize(img)
+        self.data.append(img)
+                
+
+    def __getitem__(self, idx: int) -> dict:
+        """
+        Get the idx element
+
+        Parameters
+        ----------
+        idx : int
+           the index of the element
+
+
+        Returns
+        -------
+        sample: dict[str, Any]
+        """
+        
+        sample = {'image': self.data[idx], 'label': [0,0,0,0]}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
+
+    def __len__(self):
+
+        return len(self.data)
+
+    @staticmethod
+    def img_normalize(img):
+        img = (img / 255.0)
+
+        return img
+    
+
+class GameImageDataset(Dataset):
+    """
+    Encapsulate Caltech256 torch.utils.data.Dataset
+
+    Parameters
+    ----------
+    root_dir : str
+        Path to the dataset directory.
+
+    transform : Callable,
+        A transform function that takes the original image and
+        return a transformed version.
+
+    Attributes
+    ----------
+    data : list
+        list of images files names
+    labels : list
+        list of integers (labels)
+    """
+
+    def __init__(self, root_dir: str = "data",
+                 transform: Optional[Callable] = None):
+
+        self.root_dir = root_dir
+        self.transform = transform
+        self.data = []
+        self.labels = []
+        self._classes = 4
+
+        # load data and labels
+        for item in os.listdir(root_dir):
+            filepath = os.path.join(root_dir, item)
+            if not os.path.isdir(filepath):
+                # read and process image
+                img = cv2.imread(filepath)
+                img = img[:, :, ::-1]
+                img = self.img_normalize(img)
+                self.data.append(img)
+                
+                # read labels from filename
+                label = item.split('.')[0][-4:]
+                label = [int(i) for i in label]
+                self.labels.append(label)
+                
+
+    def __getitem__(self, idx: int) -> dict:
+        """
+        Get the idx element
+
+        Parameters
+        ----------
+        idx : int
+           the index of the element
+
+
+        Returns
+        -------
+        sample: dict[str, Any]
+        """
+        
+        sample = {'image': self.data[idx], 'label': self.labels[idx]}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
+
+    def __len__(self):
+
+        return len(self.data)
+
+    @staticmethod
+    def img_normalize(img):
+        img = (img / 255.0)
+
+        return img
+    
+
 class Normalize(object):
     """
     Normalize the image in the sample using

@@ -5,6 +5,15 @@
 
 import cv2
 import random
+import torch
+from torchvision import transforms
+from model import AlexNet
+from utils import Normalize, RandomCrop, SquarifyImage, \
+    ToTensor, PredictImageSet
+
+# mention torch device for gpu
+device = None
+
 
 class DIVM_runner:
 
@@ -20,10 +29,13 @@ class DIVM_runner:
 		self.notif_imgs.append( cv2.resize( cv2.imread('discord_noti3.png'), (500,300), interpolation = cv2.INTER_AREA))
 		#self.noDisplay = cv2.imread("noDisplay.jpg")
 
+		self.isPlaying = False 
+		self.model = AlexNet(n_classes=4, device=device)
+		# TODO: load trained model
+
 	def __del__(self):
 		self.vid.release()
 		cv2.destroyAllWindows()
-
 
 	#More code inspo - https://stackoverflow.com/questions/56002672/display-an-image-over-another-image-at-a-particular-co-ordinates-in-opencv
 	def displayNoti(self, screenshot):
@@ -37,15 +49,15 @@ class DIVM_runner:
 		height = screenshot.shape[1]
 		print("image size w,h: " + str(width) + ", " + str(height))
 		print("tmp w,h: " + str(tmp_img.shape[0]) + ", " + str(tmp_img.shape[1]))
-		#position = notify(screenshot)
+		#position = self.notify(screenshot)
 		position = "1111"
 		if position == "1111":
 			#place randomly
 			position = random.choice(["1000","0100","0010","0001"])
 
 		if position == "0000":
-			#Do not place
 			pass
+			#Do not place
 		elif position == "1000":
 			#top left corner
 			tmp_img[0:300, 0:500,:] = noti_img
@@ -55,12 +67,13 @@ class DIVM_runner:
 			tmp_img[0:300, height-500:height,:] = noti_img
 
 		elif position == "0010":
-			#bottom left 
+			#bottom left corner
 			tmp_img[width-300:width, 0:500:,:] = noti_img
 
 		elif position == "0001":
 			#bottom right corner
 			tmp_img[width-300:width, height-500:height,:] = noti_img
+            
 		else:
 			print("You done goofed.")
 
@@ -68,14 +81,25 @@ class DIVM_runner:
 		#relase screen and wait for key press
 		cv2.waitKey(0)
 
+	def notify(self, screenshot):
 
-	def notify( screenshot ):
-		## screenshot is an image from the video
-		## TODO, Adheesh - add code to return a placement classification
-		## Expected return: a string "xxxx" representing the placement
+		dataset_temp = PredictImageSet(
+			img=screenshot,
+			transform=transforms.Compose(
+				[SquarifyImage(),
+				RandomCrop(224),
+				Normalize(),
+				ToTensor()]))
+		batch_size = 16
+		dataloader = torch.utils.data.DataLoader(dataset_temp, batch_size=batch_size,
+											num_workers=4)
 
+		predictions = self.model.predict(dataloader)
+		predictions = torch.LongTensor(predictions[0]>0.5).tolist()
 		
-		return
+		print(''.join(map(str, predictions)))
+		
+		return ''.join(map(str, predictions))
 
 	# Code inspired by -  https://stackoverflow.com/questions/38064777/use-waitkey-in-order-pause-and-play-video
 	def runPlayer(self):
@@ -104,7 +128,6 @@ class DIVM_runner:
 				##notify(img)
 				self.displayNoti(img)
 
-
 def main():
 
 	f_names = ["test_vidz/apexLegends_fail.mp4"]
@@ -119,10 +142,6 @@ def main():
 	#	cv2.waitKey(-1)
 	#test 1
 	#player = DIVM_runner(f_names[0])
-
-
-
-
 
 if __name__ == '__main__':
 	main()

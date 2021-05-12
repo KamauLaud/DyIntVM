@@ -72,7 +72,6 @@ class PredictImageSet(Dataset):
         img = (img / 255.0)
 
         return img
-    
 
 class GameImageDataset(Dataset):
     """
@@ -307,5 +306,5 @@ class ToTensor(object):
         img, label = sample['image'], sample['label']
         img = img.transpose((2, 0, 1))
         sample = {'image': torch.from_numpy(img),
-                  'label': torch.tensor(label)}
+                  'label': torch.LongTensor(label)}
         return sample

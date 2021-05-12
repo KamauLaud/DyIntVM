@@ -29,7 +29,7 @@ class AlexNet(object):
             if None: cuda will be used if it is available
     """
 
-    def __init__(self, n_classes: int = 4, device: Optional[str] = None):
+    def __init__(self, n_classes: int = 4, device = None):
 
         self.n_classes = n_classes
         self.model = alexnet(pretrained=True, progress=True)
@@ -39,6 +39,8 @@ class AlexNet(object):
         if device is None:
             self.device = torch.device(
                 "cuda:0" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = device
         logger.info('The code is running on {} '.format(self.device))
 
     def __freeze_all_layers(self) -> None:
@@ -196,15 +198,15 @@ class AlexNet(object):
                 outputs = self.model(data)
                 _, predicted = torch.max(outputs.data, 1)
                 
-                outputs = torch.sigmoid(outputs)
                 
-                for i in range(4):
-                    p, r, f, _ = prfs(labels[:,i].cpu().numpy(),outputs[:,i].cpu().numpy()>0.5, average='binary')
+                outputs = torch.sigmoid(outputs)
+                for i in range(self.n_classes):
+                    p, r, f, _ = prfs(labels[:,i].cpu().numpy(),outputs[:,i].cpu().numpy()>0.5, average='macro')
                     precisions[i] += p
                     recalls[i] += r
                     fscores[i] += f
-                
-        return precisions, recalls, fscores
+                    
+        return [x/(batch_idx+1) for x in precisions], [x/(batch_idx+1) for x in recalls], [x/(batch_idx+1) for x in fscores]
 
     def predict(self, test_loader):
         """

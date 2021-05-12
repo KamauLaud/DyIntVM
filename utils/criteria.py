@@ -31,7 +31,7 @@ def least_confidence(pred_prob: np.ndarray, k: int) -> Tuple[np.ndarray,
     assert 0 < k <= pred_prob.shape[0], "invalid k value k should be >0 &" \
                                         "k <=  pred_prob.shape[0"
     # Get max probabilities prediction and its corresponding classes
-    most_pred_prob, most_pred_class = np.max(pred_prob, axis=1), np.argmax(
+    most_pred_prob, most_pred_class = np.sum(np.absolute(pred_prob-0.5), axis=1), np.argmax(
         pred_prob, axis=1)
     size = len(pred_prob)
     lc_i = np.column_stack(
@@ -113,7 +113,7 @@ def entropy(pred_prob: np.ndarray, k: int) -> Tuple[np.ndarray, np.ndarray]:
     assert 0 < k <= pred_prob.shape[0], "invalid k value k should be >0 &" \
                                         "k <=  pred_prob.shape[0"
     size = len(pred_prob)
-    entropy_ = - np.nansum(pred_prob * np.log(pred_prob), axis=1)
+    entropy_ = - np.nansum(np.absolute(pred_prob-0.5) * np.log(np.absolute(pred_prob-0.5)), axis=1)
     pred_class = np.argmax(pred_prob, axis=1)
     en_i = np.column_stack((list(range(size)), pred_class, entropy_))
 

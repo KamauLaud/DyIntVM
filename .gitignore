@@ -4,5 +4,10 @@
 # python 
 __pycache__/
 
+# project files
+data/
+saved_model/
+
 # added by adheesh
 jupyter.txt
+annotated_r2.zip

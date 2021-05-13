@@ -3,13 +3,14 @@
 #
 #
 
+import sys
 import cv2
 import random
-#import torch
-#from torchvision import transforms
-#from model import AlexNet
-#from utils import Normalize, RandomCrop, SquarifyImage, \
-#    ToTensor, PredictImageSet
+import torch
+from torchvision import transforms
+from model import AlexNet
+from utils import Normalize, RandomCrop, SquarifyImage, \
+    ToTensor, PredictImageSet
 
 # mention torch device for gpu
 device = None
@@ -30,29 +31,30 @@ class DIVM_runner:
 		#self.noDisplay = cv2.imread("noDisplay.jpg")
 
 		self.isPlaying = False 
-		#self.model = AlexNet(n_classes=4, device=device)
+		# self.model = AlexNet(n_classes=4, device=device)
+		# self.model.load_state_dict(torch.load('saved_model/alexnet.pth'))
+		self.model = torch.load('saved_model/alexnet.pth')
 		# TODO: load trained model
 
 	def __del__(self):
 		self.vid.release()
 		cv2.destroyAllWindows()
 
-	#More code inspo - https://stackoverflow.com/questions/56002672/display-an-image-over-another-image-at-a-particular-co-ordinates-in-opencv
+	# More code inspo - https://stackoverflow.com/questions/56002672/display-an-image-over-another-image-at-a-particular-co-ordinates-in-opencv
 	# Grid in opencv - https://towardsdatascience.com/image-geometric-transformation-in-numpy-and-opencv-936f5cd1d315
 	def displayNoti(self, screenshot):
 
-
+		#pause screen
+		cv2.waitKey(-1)
 		noti_img = random.choice(self.notif_imgs)
 		tmp_img = screenshot.copy()
 
 		width = screenshot.shape[0]
 		height = screenshot.shape[1]
-		#print("image size w,h: " + str(width) + ", " + str(height))
-		#print("tmp w,h: " + str(tmp_img.shape[0]) + ", " + str(tmp_img.shape[1]))
-		#position = self.notify(screenshot)
-
-		position = "1111"		
-
+		print("image size w,h: " + str(width) + ", " + str(height))
+		print("tmp w,h: " + str(tmp_img.shape[0]) + ", " + str(tmp_img.shape[1]))
+		position = self.notify(screenshot)
+		# position = "1111"
 		if position == "1111":
 			#place randomly
 			position = random.choice(["1000","0100","0010","0001"])
@@ -79,18 +81,9 @@ class DIVM_runner:
 		else:
 			print("You done goofed.")
 
-		#pause screen and wait for key press
 		cv2.imshow("DIVM Demo", tmp_img)
-		feedback = cv2.waitKey(0)
-		self.feedbackResponse(screenshot, feedback)
-
-
-	def feedbackResponse(self, screenshot, keyPress):
-		if key == ord("g"):
-			pass
-		elif key == ord("b"):
-			pass
-		return	
+		#relase screen and wait for key press
+		cv2.waitKey(0)
 
 	def notify(self, screenshot):
 
@@ -141,7 +134,9 @@ class DIVM_runner:
 
 def main():
 
-	f_names = ["test_vidz/apexLegends_fail.mp4"]
+	file_name = sys.argv[1]
+	f_names = ["test_vidz/"+file_name+".mp4"]
+	print(f_names)
 
 	#test 1
 	player = DIVM_runner(f_names[0])

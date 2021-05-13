@@ -33,8 +33,9 @@ class DIVM_runner:
 		self.isPlaying = False 
 		# self.model = AlexNet(n_classes=4, device=device)
 		# self.model.load_state_dict(torch.load('saved_model/alexnet.pth'))
-		self.model = torch.load('saved_model/alexnet.pth')
-		# TODO: load trained model
+		map_location = "cuda" if torch.cuda.is_available() else "cpu"
+		self.model = torch.load('saved_model/alexnet.pth',map_location=map_location)
+		self.model.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 	def __del__(self):
 		self.vid.release()

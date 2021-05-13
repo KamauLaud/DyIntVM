@@ -6,7 +6,7 @@ __pycache__/
 
 # project files
 data/
-saved_model/
+saved_model/alexnet.pth
 
 # added by adheesh
 jupyter.txt
